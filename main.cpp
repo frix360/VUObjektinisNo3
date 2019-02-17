@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <iomanip>
@@ -117,53 +118,63 @@ struct Student {
     }
 };
 
-void printStudentsData(int n, Student *students, CalculationType calcType = AVERAGE);
+void printStudentsData(vector<Student> students);
 
 int main()
 {
-    int studentsCount;
+    ifstream fd ("data.txt");
+    vector<string> headers;
 
-    string name, surname;
+    string line;
+    getline(fd, line); // Nuskaitome pirma eilute
+    istringstream iss(line);
 
-    cout << "Kiek bus mokiniu? ";
-    cin >> studentsCount;
-
-    while(cin.fail()) {
-        cin.clear();
-        cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
-
-        cout << "Neteisinga ivestis. Veskite dar karta. ";
-        cin >> studentsCount;
+    string s;
+    while (iss >> s) {
+        headers.push_back(s);
     }
 
-    cout << endl;
+    vector<Student> students;
 
-    Student* students = new Student[studentsCount];
+    const int homeworkGradesCount = headers.size() - 3;
 
-    for (int i = 0; i < studentsCount; i++) {
-            students[i].InputData();
+    while (getline(fd, line)) {
+        istringstream iss(line);
+
+        Student student;
+        iss >> student.name >> student.surname;
+
+        for (int i = 0; i < homeworkGradesCount; i++) {
+            int grade;
+            iss >> grade;
+            student.homeworkGrades.push_back(grade);
+            student.gradesCount++;
+        }
+
+        iss >> student.exam;
+        students.push_back(student);
     }
 
-    int choice;
-    cout << "Kaip suskaiciuoti galutini rezultata?" << endl << "1 : Vidurkis" << endl << "2 : Mediana" << endl << "Iveskite pasirinkima: ";
-    cin >> choice;
 
-    CalculationType calcType = choice == 2 ? MEDIAN : AVERAGE;
 
-    printStudentsData(studentsCount, students, calcType);
+    printStudentsData(students);
 
     return 0;
 }
 
 
-void printStudentsData(int n, Student *students, CalculationType calcType) {
-    cout << "Vardas     Pavarde       Galutinis( " << (calcType == AVERAGE ? "Avg" : "Med" )<< " )"
-    << endl
-    << "-----------------------------------------------------------" << endl;
+void printStudentsData(vector<Student> students) {
+    sort(students.begin(), students.end(),
+         [](Student s1, Student s2) {
+            return s1.name < s2.name;
+         });
+
+    cout << left << setw(10) << "Vardas" << setw(10) << "Pavarde" << setw(20) << "Galutinis (Vid.)" << "Galutinis (Med)" << endl;
+    cout << string (55 , '-') << endl;
 
 
 
-    for (int i = 0; i < n; i++) {
-        cout << fixed << setprecision(2) << setw(10) << students[i].name <<  setw(12) <<students[i].surname <<  setw(20) << students[i].GetFinalGrade(calcType) << endl;
+    for (int i = 0; i < students.size(); i++) {
+        cout << fixed << setprecision(2) << left << setw(10) << students[i].name <<  setw(10) <<students[i].surname <<  setw(20) << students[i].GetFinalGrade(AVERAGE) << students[i].GetFinalGrade(MEDIAN) << endl;
     }
 }
