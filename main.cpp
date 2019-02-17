@@ -20,7 +20,6 @@ struct Student {
     string name;
     string surname;
     vector<int> homeworkGrades;
-    int gradesCount = 0;
     int exam = 0;
 
     void InputData() {
@@ -50,7 +49,7 @@ struct Student {
         uniform_int_distribution<> gradesRand(1, 10);
 
 
-        gradesCount = gradesCountRand(gen);
+        int gradesCount = gradesCountRand(gen);
 
         for (int i = 0; i < gradesCount; i++) {
             homeworkGrades.push_back(gradesRand(gen));
@@ -74,41 +73,43 @@ struct Student {
             homeworkGrades.push_back(grade);
         }
 
-        gradesCount = homeworkGrades.size();
-
         cin.clear();
         cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
 
     }
 
-    float GetAverageOfHomeworkGrades() {
+    double GetAverageOfHomeworkGrades() {
+        if (homeworkGrades.size() == 0) // todo throw exceptions to handle this error
+            return 0;
+
         int sum = 0;
-        for (int i = 0; i < gradesCount; i++) {
-            sum += homeworkGrades[i];
+
+        for (auto& n : homeworkGrades) {
+            sum += n;
         }
 
-        return (float)sum / gradesCount;
+        return (double)sum / homeworkGrades.size();
     }
 
-    float GetMedianOfHomeworkGrades() {
+    double GetMedianOfHomeworkGrades() {
+        int gradesCount = homeworkGrades.size();
 
-        int sortedGrades[gradesCount];
+        if (gradesCount == 0) // todo throw exceptions to handle this error
+            return 0;
 
-        for (int i = 0; i < gradesCount; i++) {
-            sortedGrades[i] = homeworkGrades[i];
-        }
+        vector<int> sortedGrades(homeworkGrades);
 
-        sort(sortedGrades, sortedGrades + gradesCount);
+        sort(sortedGrades.begin(), sortedGrades.end());
 
         if (gradesCount % 2 == 0) {
-            return (sortedGrades[gradesCount/2] + sortedGrades[gradesCount/2 - 1]) / (float)2;
+            return (double)(sortedGrades[gradesCount/2] + sortedGrades[gradesCount/2 - 1]) / 2;
         }
         else {
             return sortedGrades[gradesCount/2];
         }
     }
 
-    float GetFinalGrade(CalculationType calcType) {
+    double GetFinalGrade(CalculationType calcType) {
         switch (calcType) {
         case AVERAGE:
             return 0.4f  * GetAverageOfHomeworkGrades() + 0.6f * exam;
@@ -119,15 +120,25 @@ struct Student {
     }
 };
 
-void printStudentsData(vector<Student> students);
+void printStudentsData(vector<Student> students, vector <string> headers);
 
 int main()
 {
-    ifstream fd ("data.txt");
+    ifstream fd ("kursiokai.txt");
+
+    if (fd.fail()) {
+        cout << "Failas \"kursiokai.txt\" neegzistuoja";
+        return 1;
+    }
     vector<string> headers;
 
     string line;
     getline(fd, line); // Nuskaitome pirma eilute
+
+    if (line.empty()) {
+        cout << "There is nothing on the first line of the file. Aborting.";
+        return 2;
+    }
     istringstream iss(line);
 
     string s;
@@ -149,34 +160,28 @@ int main()
             int grade;
             iss >> grade;
             student.homeworkGrades.push_back(grade);
-            student.gradesCount++;
         }
 
         iss >> student.exam;
         students.push_back(student);
     }
 
-
-
-    printStudentsData(students);
+    printStudentsData(students, headers);
 
     cin.get();
     return 0;
 }
 
-
-void printStudentsData(vector<Student> students) {
+void printStudentsData(vector<Student> students, vector <string> headers) {
     sort(students.begin(), students.end(),
          [](Student s1, Student s2) {
             return s1.name < s2.name;
          });
 
-    cout << left << setw(10) << "Vardas" << setw(10) << "Pavarde" << setw(20) << "Galutinis (Vid.)" << "Galutinis (Med)" << endl;
+    cout << left << setw(10) << headers[0] << setw(10) << headers[1] << setw(20) << "Galutinis (Vid.)" << "Galutinis (Med)" << endl;
     cout << string (55 , '-') << endl;
 
-
-
-    for (int i = 0; i < students.size(); i++) {
-        cout << fixed << setprecision(2) << left << setw(10) << students[i].name <<  setw(10) <<students[i].surname <<  setw(20) << students[i].GetFinalGrade(AVERAGE) << students[i].GetFinalGrade(MEDIAN) << endl;
+    for (auto &student : students) {
+        cout << fixed << setprecision(2) << left << setw(10) << student.name <<  setw(10) <<student.surname <<  setw(20) << student.GetFinalGrade(AVERAGE) << student.GetFinalGrade(MEDIAN) << endl;
     }
 }
