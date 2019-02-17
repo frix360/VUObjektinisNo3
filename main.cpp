@@ -7,6 +7,7 @@
 #include <random>
 #include <sstream>
 #include <time.h>
+
 using namespace std;
 
 enum CalculationType { MEDIAN, AVERAGE };
@@ -159,6 +160,7 @@ int main()
 
     printStudentsData(students);
 
+    cin.get();
     return 0;
 }
 
