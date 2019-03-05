@@ -12,6 +12,7 @@
 #include <time.h>
 #include <exception>
 #include <stdlib.h>
+#include <chrono>
 
 using std::string;
 using std::vector;
@@ -20,6 +21,7 @@ using std::cin;
 using std::endl;
 using std::left;
 using std::setw;
+using std::ofstream;
 
 enum CalculationType { MEDIAN, AVERAGE };
 
@@ -134,23 +136,30 @@ struct Student {
   }
 };
 
-void PrintStudentsData(std::vector<Student> students, std::vector<std::string> headers);
-void ReadFile(std::vector<Student>& students, std::vector<std::string>& headers);
+void PrintStudentsData(std::ostream &stream,std::vector<Student> students, std::vector<std::string> headers);
+void PrintStudentsData(std::ostream &stream, std::vector<Student> students);
+void ReadFile(std::istream &stream, vector<Student>& students, vector<string>& headers);
+void ReadFile(std::istream &stream, vector<Student>& students);
 void InputData(std::vector<Student>& students, std::vector<std::string>& headers);
+string GenerateFile(int studentsCount, int gradesCount);
+void GenerateFilesAndTest(int gradesCount);
+void SeperateStudents(std::vector<Student> students, vector<Student> &smartless, vector<Student> &smartfull);
+void TestSpeedOfSeperation(int studentsToGenerate, int gradesCount);
 
-void PrintStudentsData(std::vector<Student> students, std::vector<std::string> headers) {
+
+void PrintStudentsData(std::ostream &stream,std::vector<Student> students, std::vector<std::string> headers) {
   sort(students.begin(), students.end(),
        [](Student s1, Student s2) { return s1.name < s2.name; });
 
-  cout << left << setw(12) << headers[0] << setw(12) << headers[1] << setw(20)
+  stream << left << setw(12) << headers[0] << setw(12) << headers[1] << setw(20)
        << "Galutinis (Vid.)"
        << "Galutinis (Med)" << endl;
-  cout << string(55, '-') << endl;
+  stream << string(55, '-') << endl;
 
   vector<string> errors;
   for (auto& student : students) {
     try {
-    cout << std::fixed << std::setprecision(2) << left << setw(12)
+    stream << std::fixed << std::setprecision(2) << left << setw(12)
          << student.name << setw(12) << student.surname << setw(20)
          << student.GetFinalGrade(AVERAGE) << student.GetFinalGrade(MEDIAN)
          << endl;
@@ -165,6 +174,14 @@ void PrintStudentsData(std::vector<Student> students, std::vector<std::string> h
         cout << error << endl;
     }
   }
+}
+
+void PrintStudentsData(std::ostream &stream, std::vector<Student> students) {
+    vector<string> headers;
+    headers.push_back("Vardas");
+    headers.push_back("Pavarde");
+
+    PrintStudentsData(stream, students, headers);
 }
 
 void InputData(vector<Student>& students, vector<string>& headers) {
@@ -196,20 +213,17 @@ void InputData(vector<Student>& students, vector<string>& headers) {
   headers.push_back("Pavarde");
 }
 
-void ReadFile(vector<Student>& students, vector<string>& headers) {
-  students.clear();
-  headers.clear();
 
+void ReadFile(std::istream &stream, vector<Student>& students, vector<string>& headers) {
+  students.clear();
   students.reserve(50);
 
-  std::ifstream fd("kursiokai.txt");
-
-  if (fd.fail()) {
-    throw new std::runtime_error("Failas \"kursiokai.txt\" neegzistuoja");
+  if (stream.fail()) {
+    throw new std::runtime_error("Failas neegzistuoja");
   }
 
   string line;
-  getline(fd, line);  // Nuskaitome pirma eilute
+  getline(stream, line);  // Nuskaitome pirma eilute
 
   if (line.empty()) {
     throw new std::runtime_error("Pirma eilute tuscia, nutraukiame");
@@ -228,7 +242,7 @@ void ReadFile(vector<Student>& students, vector<string>& headers) {
 
   const int homeworkGradesCount = headers.size() - 3;
 
-  while (getline(fd, line)) {
+  while (getline(stream, line)) {
     std::istringstream iss(line);
 
     Student student;
@@ -243,7 +257,96 @@ void ReadFile(vector<Student>& students, vector<string>& headers) {
     iss >> student.exam;
     students.push_back(student);
   }
-  fd.close();
+}
+
+void ReadFile(std::istream &stream, vector<Student>& students) {
+    vector<string> headers;
+    ReadFile(stream, students, headers);
+}
+
+string GenerateFile(int studentsCount, int gradesCount) {
+    string fileName = "kursiokai" + std::to_string(studentsCount) + ".txt";
+    ofstream stream (fileName);
+    std::mt19937 gen(time(NULL));
+    std::uniform_int_distribution<> gradesRand(1, 10);
+
+    stream << "Vardas " << "Pavarde ";
+
+    for (int i = 1; i < gradesCount; i++) {
+        stream << "ND" << i << " ";
+    }
+
+    stream << "Egzaminas" << "\n";
+
+
+
+    for (int i = 0; i < studentsCount; i++) {
+         stream << "Vardas" << i << " Pavarde" << i << " ";
+         for (int j = 0; j < gradesCount + 1; j++) {
+            stream << gradesRand(gen) << " ";
+         }
+         stream << "\n";
+    }
+
+    stream.close();
+
+    return fileName;
+}
+
+void SeperateStudents(vector<Student> students, vector<Student> &smartless, vector<Student> &smartfull)
+{
+    for (Student student : students) {
+        if (student.GetFinalGrade(AVERAGE) < 5.0) {
+            smartless.push_back(student);
+        }
+        else {
+            smartfull.push_back(student);
+        }
+    }
+}
+
+void TestSpeedOfSeperation(int studentsToGenerate, int gradesCount) {
+    cout << "Testuojame " << studentsToGenerate << " studentu  atskyrima kai kiekvienas studentas turi po " << gradesCount << " pazymius:" << endl;
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    auto fileName = GenerateFile( studentsToGenerate, gradesCount);
+
+    std::ifstream stream(fileName);
+
+    if (stream.fail()) {
+        throw new std::runtime_error("Failas " + fileName + " neegzistuoja");
+    }
+
+    vector<Student> students;
+
+    ReadFile(stream, students);
+
+    vector<Student> smartful;
+    vector<Student> smartless;
+    SeperateStudents(students, smartless, smartful);
+
+    std::ofstream smartfulOut("kietiakai" + std::to_string(studentsToGenerate) + ".txt");
+    std::ofstream smartlessOut("nuskriaustukai" + std::to_string(studentsToGenerate) + ".txt");
+
+    PrintStudentsData(smartfulOut, smartful);
+    PrintStudentsData(smartlessOut, smartless);
+
+    smartfulOut.close();
+    smartlessOut.close();
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    cout << "Operacija ivykdyta per " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+}
+
+void GenerateFilesAndTest(int gradesCount = 10) {
+    TestSpeedOfSeperation(10, gradesCount);
+    TestSpeedOfSeperation(100, gradesCount);
+    TestSpeedOfSeperation(1000, gradesCount);
+    TestSpeedOfSeperation(10000, gradesCount);
+    TestSpeedOfSeperation(100000, gradesCount);
+
+    cout << "Testavimas baigtas" << endl;
 }
 
 
