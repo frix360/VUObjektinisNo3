@@ -2,28 +2,28 @@
 
 void SortCollection(vector<Student> students) {
     sort(students.begin(), students.end(),
-         [](Student s1, Student s2) { return s1.name < s2.name; });
+         [](Student s1, Student s2) { return s1.getName() < s2.getName(); });
 }
 
 void SortCollection(std::deque<Student> students) {
     sort(students.begin(), students.end(),
-         [](Student s1, Student s2) { return s1.name < s2.name; });
+         [](Student s1, Student s2) { return s1.getName() < s2.getName(); });
 }
 
 void SortCollection(std::list<Student> students) {
-    students.sort([](Student s1, Student s2) { return s1.name < s2.name; });
+    students.sort([](Student s1, Student s2) { return s1.getName() < s2.getName(); });
 }
 
 template<typename Container>
 size_t FindLongestStringLength(const Container &container) {
     size_t max = 0;
     for (const Student &stud : container) {
-        if (stud.name.length() > max) {
-            max = stud.name.length();
+        if (stud.getName().length() > max) {
+            max = stud.getName().length();
         }
 
-        if (stud.surname.length() > max) {
-            max = stud.surname.length();
+        if (stud.getSurname().length() > max) {
+            max = stud.getSurname().length();
         }
     }
 
@@ -46,7 +46,7 @@ void PrintStudentsData(std::ostream &stream, const Container &students, const st
     for (auto &student : students) {
         try {
             stream << std::fixed << std::setprecision(2) << left << setw(maxLength + 10)
-                   << student.name << setw(maxLength + 10) << student.surname << setw(maxLength + 10)
+                   << student.getName() << setw(maxLength + 10) << student.getSurname() << setw(maxLength + 10)
                    << student.GetFinalGrade(AVERAGE) << setw(maxLength + 10) << student.GetFinalGrade(MEDIAN)
                    << endl;
         } catch (std::exception &ex) {
@@ -132,17 +132,21 @@ void ReadFile(std::istream &stream, Container &students, vector<string> &headers
     while (getline(stream, line)) {
         std::istringstream iss(line);
 
-        Student student;
-        iss >> student.name >> student.surname;
+        string name, surname;
+        vector<int> grades;
+        int exam;
+
+        iss >> name >> surname;
 
         for (int i = 0; i < homeworkGradesCount; i++) {
             int grade;
             iss >> grade;
-            student.homeworkGrades.push_back(grade);
+            grades.push_back(grade);
         }
 
-        iss >> student.exam;
-        students.push_back(student);
+        iss >> exam;
+
+        students.push_back(Student(name, surname, grades, exam));
     }
 }
 
@@ -406,3 +410,7 @@ void GenerateFilesAndTest(int gradesCount, bool useDifferentStrategy, bool useRe
 
     cout << "Testavimas baigtas" << endl;
 }
+
+
+
+
