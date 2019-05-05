@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Student.h"
 
 const int MAX_RAND_HOMEWORK_GRADES = 20;
@@ -47,7 +48,7 @@ void Student::GenerateGrades() {
 
 void Student::InputGrades() {
     cout << "Iveskite pazymius (kad baigti ivedima, iveskite ne skaiciu)."
-         << endl;
+            << endl;
 
     int grade;
 
@@ -104,3 +105,40 @@ double Student::GetFinalGrade(CalculationType calcType) const {
             return 0.4 * GetMedianOfHomeworkGrades() + 0.6 * exam;
     }
 }
+
+Student::~Student() = default;
+
+Student::Student() = default;
+
+Student::Student(string name, string surname, vector<int> grades, int exam) {
+    this->name = name;
+    this->surname = surname;
+    this->homeworkGrades = grades;
+    this->exam = exam;
+}
+
+Student &Student::operator=(const Student &other) {
+    this->name = other.name;
+    this->surname = other.surname;
+    this->exam = other.exam;
+    this->homeworkGrades = other.homeworkGrades;
+
+    return *this;
+}
+
+ostream &operator<<(ostream &os, const Student &student) {
+    int maxLength = std::max(student.getName().length(), student.getSurname().length());
+
+    try {
+        os << std::fixed << std::setprecision(2) << left << setw(maxLength)
+           << student.getName() << setw(maxLength) << student.getSurname() << setw(maxLength)
+           << student.GetFinalGrade(AVERAGE) << setw(maxLength) << student.GetFinalGrade(MEDIAN)
+           << endl;
+    } catch (std::exception &ex) {
+        os << "There was an error while outputting a student";
+    }
+
+    return os;
+}
+
+

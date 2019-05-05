@@ -28,6 +28,7 @@ using std::left;
 using std::setw;
 using std::ofstream;
 using std::istream;
+using std::ostream;
 
 enum CalculationType {
     MEDIAN, AVERAGE
@@ -61,14 +62,15 @@ public:
 
     vector<int> getHomeworkGrades() const { return homeworkGrades; };
 
-    Student(string name, string surname, vector<int> grades, int exam) {
-        this->name = name;
-        this->surname = surname;
-        this->homeworkGrades = grades;
-        this->exam = exam;
-    }
+    Student(string name, string surname, vector<int> grades, int exam);
 
-    Student() = default;
+    Student();
+
+    ~Student();
+
+    Student &operator=(const Student &s);
+
+    friend ostream &operator<<(ostream &os, const Student &student);
 };
 
 #endif //VU_OBJ_NO_2_STUDENT_H
