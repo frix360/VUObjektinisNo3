@@ -110,7 +110,7 @@ Student::~Student() = default;
 
 Student::Student() = default;
 
-Student::Student(string name, string surname, vector<int> grades, int exam) {
+Student::Student(string name, string surname, vector<int> grades, int exam) : Person(name, surname) {
     this->name = name;
     this->surname = surname;
     this->homeworkGrades = grades;

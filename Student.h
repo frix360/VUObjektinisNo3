@@ -15,6 +15,7 @@
 #include <chrono>
 #include <list>
 #include <deque>
+#include "Person.h"
 
 
 using std::string;
@@ -34,10 +35,8 @@ enum CalculationType {
     MEDIAN, AVERAGE
 };
 
-class Student {
+class Student : public Person {
 private:
-    string name;
-    string surname;
     vector<int> homeworkGrades;
     int exam = 0;
 public:
@@ -53,12 +52,7 @@ public:
 
     double GetFinalGrade(CalculationType calcType) const;
 
-    std::string getName() const { return name; };
-
-    std::string getSurname() const { return surname; };
-
     int getExam() const { return exam; };
-
 
     vector<int> getHomeworkGrades() const { return homeworkGrades; };
 
