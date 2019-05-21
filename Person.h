@@ -15,6 +15,10 @@ public:
     std::string getSurname() const;
 
     virtual ~Person() = 0;
+
+    Person();
+
+    Person(string, string);
 };
 
 
