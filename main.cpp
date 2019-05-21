@@ -1,6 +1,10 @@
+#define CATCH_CONFIG_RUNNER
 #include "header.h"
+#include "catch.hpp"
 
-int main() {
+int main(int argc, char* argv[] ) {
+
+    int result = Catch::Session().run( argc, argv );
 
     vector<Student> students;
     vector<string> headers;

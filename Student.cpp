@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "Student.h"
-
+#include "catch.hpp"
 const int MAX_RAND_HOMEWORK_GRADES = 20;
 const int MIN_RAND_HOMEWORK_GRADES = 10;
 
@@ -140,5 +140,6 @@ ostream &operator<<(ostream &os, const Student &student) {
 
     return os;
 }
+
 
 
